@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Hi, {{ user.username }}! The site is under construction, updates daily.</h1>
+<p>
+    Hi, {{ user.username }}! Site is updated frequently as I have the time to build it out.
+<ul>
+    <li>
+        05/02/2024 - Added Flask SQL Alchemy integration with Add User
+    </li>
+</ul>
+</p>
 {% for post in posts %}
 <div>
     <p>{{ post.author.username }} says: <b>{{ post.body }}</b></p>
