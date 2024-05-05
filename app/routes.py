@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request
 from app import app
 from app.forms import LoginForm, NameForm, UserForm
 from app.models import User
@@ -46,6 +46,24 @@ def add_user():
     our_users = User.query.order_by(User.date_added)
     return render_template("add_user.html", form=form, name=name, our_users=our_users)
 
+# Update Database Record
+@app.route("/update/<int:id>", methods=["GET","POST"])
+def update(id):
+    form = UserForm()
+    name_to_update = User.query.get_or_404(id)
+    if request.method == "POST":
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        try:
+            db.session.commit()
+            flash("User Updated Succesfuly")
+            return render_template("update.html", form=form, name_to_update=name_to_update)     
+        except:
+            flash("Error! Problem occurred... try again..")
+            return render_template("update.html", form=form, name_to_update=name_to_update) 
+    else:
+        return render_template("update.html", form=form, name_to_update=name_to_update) 
+                                 
 # Create Name Page
 @app.route("/name", methods=['GET','POST'])
 def name(): 
