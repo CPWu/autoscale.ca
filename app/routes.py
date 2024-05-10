@@ -1,8 +1,9 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app
-from app.forms import LoginForm, NameForm, UserForm
+from app.forms import LoginForm, NameForm, UserForm, PasswordForm
 from app.models import User
 from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 @app.route("/")
 @app.route("/index")
@@ -37,13 +38,16 @@ def add_user():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = User(name=form.name.data, email=form.email.data, favourite_color=form.favourite_color.data) 
+            # Hash Password
+            hashed_password = generate_password_hash(form.password_hash.data)
+            user = User(name=form.name.data, email=form.email.data, favourite_color=form.favourite_color.data, password_hash=hashed_password) 
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
         form.favourite_color = ''
+        form.password_hash = ''
         flash("User Added Successfully")
     our_users = User.query.order_by(User.date_added)
     return render_template("add_user.html", form=form, name=name, our_users=our_users)
@@ -94,6 +98,30 @@ def name():
         form.name.data = ''
         flash('Form Submitted Successfully')
     return render_template('name.html', name=name, form=form)
+
+# Create Password Test Page
+@app.route("/test_pw", methods=['GET','POST'])
+def test_pw(): 
+    email = None
+    password = None
+    pw_to_check = None
+    passed = None
+    form = PasswordForm()
+    # Validate Form
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password_hash.data
+        # Clear the form
+        form.email.data = ''
+        form.password_hash.data = ''
+
+        pw_to_check = User.query.filter_by(email=email).first()
+        
+        # Check Hashed Password
+        passed = check_password_hash(pw_to_check.password_hash, password)
+
+    return render_template('test_pw.html', email=email, password=password, pw_to_check=pw_to_check, passed=passed, form=form)
+
 
 # Custom Error Page - Invalid URL
 @app.errorhandler(404)
