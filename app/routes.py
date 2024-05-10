@@ -28,6 +28,7 @@ def login():
 def user(name): 
     return render_template('user.html', user_name=name)
 
+# User Add
 @app.route("/user/add", methods=["GET", "POST"])
 def add_user():
     name = None
@@ -64,8 +65,24 @@ def update(id):
             flash("Error! Problem occurred... try again..")
             return render_template("update.html", form=form, name_to_update=name_to_update) 
     else:
-        return render_template("update.html", form=form, name_to_update=name_to_update) 
-                                 
+        return render_template("update.html", form=form, name_to_update=name_to_update, id=id) 
+
+# User Deletion
+@app.route("/delete/<int:id>")
+def delete(id):
+    user_to_delete = User.query.get_or_404(id)   
+    name = None
+    form = UserForm()
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash("User Deleted Successfully")
+        our_users = User.query.order_by(User.date_added)
+        return render_template("add_user.html", form=form, name=name, our_users=our_users)
+    except:       
+        flash("Error occurred during user deletion.")  
+        return render_template("add_user.html", form=form, name=name, our_users=our_users)    
+
 # Create Name Page
 @app.route("/name", methods=['GET','POST'])
 def name(): 
