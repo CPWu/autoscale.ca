@@ -176,6 +176,26 @@ def edit_post(id):
     form.slug.data = post.slug
     form.content.data = post.content
     return render_template('edit_post.html',form=form)
+
+@app.route("/posts/delete/<int:id>")
+def delete_post(id):
+    post_to_delete = Post.query.get_or_404(id)
+    try:
+        db.session.delete(post_to_delete)
+        db.session.commit()
+
+        # Return Message
+        flash("Post was successfully deleted!")
+        
+        # Get All Posts from DB
+        posts = Post.query.order_by(Post.date_posted)
+        return render_template("posts.html", posts=posts)
+    except:
+        flash("Error deleting post, try again")
+        # Get All Posts from DB
+        posts = Post.query.order_by(Post.date_posted)
+        return render_template("posts.html", posts=posts) 
+
 # Custom Error Page - Invalid URL
 @app.errorhandler(404)
 def page_not_found(e):
