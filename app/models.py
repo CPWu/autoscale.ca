@@ -13,7 +13,7 @@ class User(db.Model):
     favourite_color = db.Column(db.String(120))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     password_hash = db.Column(db.String(128))
-
+    
     @property
     def password(self):
         raise AttributeError('Password is not a readable attribute!')
@@ -29,15 +29,10 @@ class User(db.Model):
     def __repr__(self):
         return "<User {}>".format(self.name)
 
-# class Post(db.Model):
-#     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-#     body: so.Mapped[str] = so.mapped_column(sa.String(140))
-#     timestamp: so.Mapped[datetime] = so.mapped_column(
-#         index=True, default=lambda: datetime.now(timezone.utc)
-#     )
-#     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
-
-#     author: so.Mapped[User] = so.relationship(back_populates="posts")
-
-#     def __repr__(self):
-#         return "<Post {}>".format(self.body)
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255))
+    content = db.Column(db.Text)
+    author = db.Column(db.String(255))
+    date_posted = db.Column(db.DateTime, default=datetime.utcnow)
+    slug = db.Column(db.String(255))

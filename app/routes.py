@@ -1,9 +1,10 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app
-from app.forms import LoginForm, NameForm, UserForm, PasswordForm
-from app.models import User
+from app.forms import LoginForm, NameForm, UserForm, PasswordForm, PostForm
+from app.models import User, Post
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import date
 
 @app.route("/")
 @app.route("/index")
@@ -122,7 +123,59 @@ def test_pw():
 
     return render_template('test_pw.html', email=email, password=password, pw_to_check=pw_to_check, passed=passed, form=form)
 
+@app.route("/add-post", methods=["GET", "POST"])
+def add_post():
+    form = PostForm()
 
+    if form.validate_on_submit():
+        post = Post(title=form.title.data, content=form.content.data, author=form.author.data, slug=form.slug.data)
+        # Clear Form
+        form.title.data = ''
+        form.content.data = ''
+        form.author.data = ''
+        form.slug.data = ''
+
+        # Add to DB
+        db.session.add(post)
+        db.session.commit()
+
+        # Flash Message
+        flash("Post Submitted Successfully!")
+
+        # Redirect
+    return render_template("add_post.html", form=form)
+ 
+@app.route("/posts", methods=["GET"])
+def posts():
+    # Get All Posts from DB
+    posts = Post.query.order_by(Post.date_posted)
+
+    return render_template("posts.html", posts=posts)
+
+@app.route("/posts/<int:id>")
+def post(id):
+    post = Post.query.get_or_404(id)
+    return render_template("post.html", post=post)
+
+@app.route("/posts/edit/<int:id>", methods=["GET","POST"])
+def edit_post(id):
+    post = Post.query.get_or_404(id)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.author = form.author.data
+        post.slug = form.slug.data
+        post.content = form.content.data
+        # Commit
+        db.session.add(post)
+        db.session.commit()
+        flash("Post has been updated!")
+        return redirect(url_for('post',id=post.id))
+    form.title.data = post.title
+    form.author.data = post.author
+    form.slug.data = post.slug
+    form.content.data = post.content
+    return render_template('edit_post.html',form=form)
 # Custom Error Page - Invalid URL
 @app.errorhandler(404)
 def page_not_found(e):

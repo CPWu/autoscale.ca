@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    {{ message }}
+</div>
+{% endfor %}
+
+<br />
+{% for post in posts %}
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h2><a href="{{ url_for('post', id=post.id)}}">{{ post.title }}</a></h2><br />
+    <small>By: {{ post.author }}<br/>
+    {{ post.date_posted }}<br /><br />
+    {{ post.content }}<br /><br />
+    <a href="{{ url_for('post', id=post.id)}}" class="btn btn-outline-secondary btn-sm">View Post</a>
+    <a href="{{ url_for('edit_post', id=post.id)}}" class="btn btn-outline-secondary btn-sm">Edit Post</a>
+
+</div>
+<br />
+
+{% endfor%}
+
+{% endblock %}
+
