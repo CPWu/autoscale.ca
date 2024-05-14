@@ -7,7 +7,7 @@ from wtforms.widgets import TextArea
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
-    remember_me = BooleanField("Remember Me")
+    #remember_me = BooleanField("Remember Me")
     submit = SubmitField("Sign In")
 
 class NameForm(FlaskForm):
@@ -21,6 +21,7 @@ class PasswordForm(FlaskForm):
 
 class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email ", validators=[DataRequired()])
     favourite_color = StringField("Favourite Color")
     password_hash = PasswordField("Password", validators=[DataRequired(),EqualTo('password_hash2', message="Passwords Must Match!")])

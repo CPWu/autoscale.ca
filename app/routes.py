@@ -1,29 +1,21 @@
 from flask import render_template, flash, redirect, url_for, request
-from app import app
+from app import app, db
 from app.forms import LoginForm, NameForm, UserForm, PasswordForm, PostForm
 from app.models import User, Post
-from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
+from flask_login import login_user, login_required, logout_user, current_user, LoginManager
+
+# Initialize Flask Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
 
 @app.route("/")
 @app.route("/index")
 def index():
     user = {"username": "Everyone"}
     return render_template("index.html", title="Home", user=user)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        flash(
-            "Login requested for user {}, remember_me={}".format(
-                form.username.data, form.remember_me.data
-            )
-        )
-        return redirect(url_for("index"))
-    return render_template("login.html", title="Sign In", form=form)
 
 # User Profile Page
 @app.route("/user/<name>")
@@ -41,11 +33,12 @@ def add_user():
         if user is None:
             # Hash Password
             hashed_password = generate_password_hash(form.password_hash.data)
-            user = User(name=form.name.data, email=form.email.data, favourite_color=form.favourite_color.data, password_hash=hashed_password) 
+            user = User(name=form.name.data, username=form.username.data, email=form.email.data, favourite_color=form.favourite_color.data, password_hash=hashed_password) 
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
+        form.username.data = ''
         form.email.data = ''
         form.favourite_color = ''
         form.password_hash = ''
@@ -62,6 +55,7 @@ def update(id):
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
         name_to_update.favourite_color = request.form['favourite_color']
+        name_to_update.username = request.form['username']
         try:
             db.session.commit()
             flash("User Updated Succesfuly")
@@ -158,6 +152,7 @@ def post(id):
     return render_template("post.html", post=post)
 
 @app.route("/posts/edit/<int:id>", methods=["GET","POST"])
+@login_required
 def edit_post(id):
     post = Post.query.get_or_404(id)
     form = PostForm()
@@ -195,6 +190,58 @@ def delete_post(id):
         # Get All Posts from DB
         posts = Post.query.order_by(Post.date_posted)
         return render_template("posts.html", posts=posts) 
+
+# Login
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user:
+            # Check Hash
+            
+            if check_password_hash(user.password_hash, form.password.data):
+                login_user(user)
+                flash("Login Successfully")
+                return redirect(url_for("dashboard"))
+            else: 
+                flash("Wrong password entered, try again!")
+        else:
+            flash("That user does not exist.")
+    return render_template("login.html", form=form)
+
+@app.route("/logout", methods=["GET","POST"])
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out.")
+    return redirect(url_for("login"))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Dashboard
+@app.route("/dashboard", methods=["GET", "POST"])
+@login_required
+def dashboard():
+    form = UserForm()
+    id = current_user.id
+    name_to_update = User.query.get_or_404(id)
+    if request.method == "POST":
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        name_to_update.favourite_color = request.form['favourite_color']
+        name_to_update.username = request.form['username']
+        try:
+            db.session.commit()
+            flash("User Updated Succesfuly")
+            return render_template("dashboard.html", form=form, name_to_update=name_to_update)     
+        except:
+            flash("Error! Problem occurred... try again..")
+            return render_template("dashboard.html", form=form, name_to_update=name_to_update) 
+    else:
+        return render_template("dashboard.html", form=form, name_to_update=name_to_update, id=id) 
 
 # Custom Error Page - Invalid URL
 @app.errorhandler(404)
