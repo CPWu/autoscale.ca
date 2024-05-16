@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
-from app.forms import LoginForm, NameForm, UserForm, PasswordForm, PostForm
+from app.forms import LoginForm, NameForm, UserForm, PasswordForm, PostForm, SearchForm
 from app.models import User, Post
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
@@ -256,6 +256,26 @@ def dashboard():
             return render_template("dashboard.html", form=form, name_to_update=name_to_update) 
     else:
         return render_template("dashboard.html", form=form, name_to_update=name_to_update, id=id) 
+
+# Pass Stuff to Navbar
+@app.context_processor
+def base():
+    form = SearchForm()
+    return dict(form=form)
+
+# Search Function
+@app.route("/search", methods=["POST"])
+def search():
+    form = SearchForm()
+    post = Post.query
+    if form.validate_on_submit():
+        # Get data from submitted form
+        post.searched = form.searched.data
+        # Query the DB
+        posts = post.filter(Post.content.like('%' + post.searched + '%'))
+        posts = posts.order_by(Post.title).all()
+
+        return render_template("search.html", form=form, searched=post.searched, posts=posts)
 
 # Custom Error Page - Invalid URL
 @app.errorhandler(404)
