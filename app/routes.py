@@ -166,10 +166,15 @@ def edit_post(id):
         db.session.commit()
         flash("Post has been updated!")
         return redirect(url_for('post',id=post.id))
-    form.title.data = post.title
-    form.slug.data = post.slug
-    form.content.data = post.content
-    return render_template('edit_post.html',form=form)
+    if current_user.id == post.poster_id:
+        form.title.data = post.title
+        form.slug.data = post.slug
+        form.content.data = post.content
+        return render_template('edit_post.html',form=form)
+    else:
+        flash("You are not authorized to edit this post.")
+        posts = Post.query.order_by(Post.date_posted)
+        return render_template("posts.html", posts=posts)
 
 @app.route("/posts/delete/<int:id>")
 @login_required
