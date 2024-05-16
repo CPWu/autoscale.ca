@@ -277,6 +277,16 @@ def search():
 
         return render_template("search.html", form=form, searched=post.searched, posts=posts)
 
+@app.route("/admin")
+@login_required
+def admin():
+    id = current_user.id
+    if id == 1:
+        return render_template("admin.html")
+    else:
+        flash("Sorry you must be the admin to access the administratin page.")
+        return redirect(url_for('dashboard'))
+
 # Custom Error Page - Invalid URL
 @app.errorhandler(404)
 def page_not_found(e):
