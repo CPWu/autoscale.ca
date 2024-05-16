@@ -123,11 +123,11 @@ def add_post():
     form = PostForm()
 
     if form.validate_on_submit():
-        post = Post(title=form.title.data, content=form.content.data, author=form.author.data, slug=form.slug.data)
+        poster = current_user.id
+        post = Post(title=form.title.data, content=form.content.data, poster_id=poster, slug=form.slug.data)
         # Clear Form
         form.title.data = ''
         form.content.data = ''
-        form.author.data = ''
         form.slug.data = ''
 
         # Add to DB
@@ -159,7 +159,6 @@ def edit_post(id):
     form = PostForm()
     if form.validate_on_submit():
         post.title = form.title.data
-        post.author = form.author.data
         post.slug = form.slug.data
         post.content = form.content.data
         # Commit
@@ -168,7 +167,6 @@ def edit_post(id):
         flash("Post has been updated!")
         return redirect(url_for('post',id=post.id))
     form.title.data = post.title
-    form.author.data = post.author
     form.slug.data = post.slug
     form.content.data = post.content
     return render_template('edit_post.html',form=form)
