@@ -8,18 +8,10 @@
 </div>
 {% endfor %}
 
-{% if name %}
-<h1>User Added!</h1>
-<br />
-<table class="table table-hover table-bordered table-striped">
-    {% for our_user in our_users %}
-    <tr>
-        <td>{{ our_user.id }}. {{ our_user.name }} - {{ our_user.email }} - {{ our_user.favourite_color }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% else %}
+{% if id == current_user.id %}
 <h1>Update User:</h1>
+ID To Update: {{ id }} <br />
+Current_User: {{ current_user.id }}
 <br />
 <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
     <form action="/update/{{ name_to_update.id }}" method="post">
@@ -41,6 +33,11 @@
         <a href="{{ url_for('delete',id=id) }}" class="btn btn-danger">Delete</a>
     </form>
 </div>
-
+{% else %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    Sorry, you are not authorized to edit this page.
+</div>
+<h2>Access Denied</h2>
+<p>You do not have the permissions to edit this profile!</p>
 {% endif %}
 {% endblock %}

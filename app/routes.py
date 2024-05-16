@@ -48,6 +48,7 @@ def add_user():
 
 # Update Database Record
 @app.route("/update/<int:id>", methods=["GET","POST"])
+@login_required
 def update(id):
     form = UserForm()
     name_to_update = User.query.get_or_404(id)
@@ -59,7 +60,7 @@ def update(id):
         try:
             db.session.commit()
             flash("User Updated Succesfuly")
-            return render_template("update.html", form=form, name_to_update=name_to_update)     
+            return render_template("update.html", form=form, name_to_update=name_to_update, id=id)     
         except:
             flash("Error! Problem occurred... try again..")
             return render_template("update.html", form=form, name_to_update=name_to_update) 
